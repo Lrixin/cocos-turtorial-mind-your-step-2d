@@ -17,12 +17,24 @@ export class PlayerController extends Component {
     private _curPos: Vec3 = new Vec3();
     private _deltaPos: Vec3 = new Vec3(0, 0, 0);
     private _targetPos: Vec3 = new Vec3();
-
+    private _curMoveIndex: number = 0;
+    
     start() {
-        input.on(Input.EventType.MOUSE_UP, this.onMouseUp, this);
+        //input.on(Input.EventType.MOUSE_UP, this.onMouseUp, this);
+    }
+
+    setInputActive(active: boolean) {
+        if (active) {
+            input.on(Input.EventType.MOUSE_UP, this.onMouseUp, this);
+        } else {
+            input.off(Input.EventType.MOUSE_UP, this.onMouseUp, this);
+        }
     }
 
     reset() {
+        this._curMoveIndex = 0;
+        this.node.getPosition(this._curPos);
+        this._targetPos.set(0, 0, 0);
     }
 
     onMouseUp(event: EventMouse) {
@@ -57,6 +69,13 @@ export class PlayerController extends Component {
                 this.BodyAnim.play('twoStep');
             }
         }
+
+        this._curMoveIndex += step;
+    }
+
+
+    onOnceJumpEnd() {
+        this.node.emit('JumpEnd', this._curMoveIndex);
     }
 
     update(deltaTime: number) {
@@ -66,6 +85,7 @@ export class PlayerController extends Component {
                 // end
                 this.node.setPosition(this._targetPos);
                 this._startJump = false;
+                this.onOnceJumpEnd();
             } else {
                 // tween
                 this.node.getPosition(this._curPos);
