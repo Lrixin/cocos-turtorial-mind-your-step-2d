@@ -1,4 +1,4 @@
-import { _decorator, Component, Vec3, EventMouse, input, Input, Animation } from "cc";
+import { _decorator, Component, Vec3, EventMouse, input, Input, Animation, EventTouch, Node } from "cc";
 const { ccclass, property } = _decorator;
 
 export const BLOCK_SIZE = 40;
@@ -12,29 +12,46 @@ export class PlayerController extends Component {
     private _startJump: boolean = false;
     private _jumpStep: number = 0;
     private _curJumpTime: number = 0;
-    private _jumpTime: number = 0.1;
+    private _jumpTime: number = 0.3;
     private _curJumpSpeed: number = 0;
     private _curPos: Vec3 = new Vec3();
     private _deltaPos: Vec3 = new Vec3(0, 0, 0);
     private _targetPos: Vec3 = new Vec3();
-    private _curMoveIndex: number = 0;
-    
+    private _curMoveIndex = 0;
+
+    @property(Node)
+    leftTouch: Node = null;
+
+    @property(Node)
+    rightTouch: Node = null;
+
     start() {
         //input.on(Input.EventType.MOUSE_UP, this.onMouseUp, this);
     }
 
     setInputActive(active: boolean) {
         if (active) {
-            input.on(Input.EventType.MOUSE_UP, this.onMouseUp, this);
+            //input.on(Input.EventType.MOUSE_UP, this.onMouseUp, this);
+            this.leftTouch.on(Input.EventType.TOUCH_START, this.onTouchStart, this);
+            this.rightTouch.on(Input.EventType.TOUCH_START, this.onTouchStart, this);
         } else {
-            input.off(Input.EventType.MOUSE_UP, this.onMouseUp, this);
+            //input.off(Input.EventType.MOUSE_UP, this.onMouseUp, this);
+            this.leftTouch.off(Input.EventType.TOUCH_START, this.onTouchStart, this);
+            this.rightTouch.off(Input.EventType.TOUCH_START, this.onTouchStart, this);
         }
     }
 
     reset() {
         this._curMoveIndex = 0;
-        this.node.getPosition(this._curPos);
-        this._targetPos.set(0, 0, 0);
+    }
+
+    onTouchStart(event: EventTouch) {
+        const target = event.target as Node;
+        if (target?.name == 'LeftTouch') {
+            this.jumpByStep(1);
+        } else {
+            this.jumpByStep(2);
+        }
     }
 
     onMouseUp(event: EventMouse) {
